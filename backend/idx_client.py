@@ -1,24 +1,26 @@
 import asyncio
 import json
+import re
 from typing import Any
 
 from .config import IDX_BINARY
+
+
+SYMBOL_RE = re.compile(
+    r"^[A-Z0-9]{1,12}$"
+)
 
 
 class IDXClientError(RuntimeError):
     pass
 
 
-async def _run_idx(*args: str) -> Any:
-    """
-    Menjalankan engine idx dan meminta output JSON.
-
-    Tidak ada shell=True.
-    Argumen diteruskan langsung agar lebih aman.
-    """
+async def _run_idx(
+    *args: str,
+) -> Any:
 
     try:
-        process = await asyncio.create_subprocess_exec(
+        proc = await asyncio.create_subprocess_exec(
             IDX_BINARY,
             "-o",
             "json",
@@ -26,56 +28,186 @@ async def _run_idx(*args: str) -> Any:
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
         )
+
     except FileNotFoundError as exc:
+
         raise IDXClientError(
-            "Binary idx belum terpasang pada server."
+            "IDX engine tidak ditemukan di server."
         ) from exc
 
-    stdout, stderr = await process.communicate()
 
-    if process.returncode != 0:
+    stdout, stderr = (
+        await proc.communicate()
+    )
+
+
+    if proc.returncode != 0:
+
         error_message = stderr.decode(
-            "utf-8",
-            errors="replace",
+            errors="replace"
         ).strip()
 
         raise IDXClientError(
-            error_message or "idx command gagal dijalankan."
+            error_message
+            or f"idx exit code {proc.returncode}"
         )
 
-    raw = stdout.decode(
-        "utf-8",
-        errors="replace",
-    ).strip()
-
-    if not raw:
-        raise IDXClientError(
-            "idx tidak mengembalikan data."
-        )
 
     try:
-        return json.loads(raw)
+
+        return json.loads(
+            stdout.decode()
+        )
+
     except json.JSONDecodeError as exc:
+
         raise IDXClientError(
-            "Output idx bukan JSON yang valid."
+            "IDX engine mengembalikan JSON tidak valid."
         ) from exc
 
 
-async def get_quote(symbol: str) -> Any:
-    symbol = symbol.upper().strip()
+def clean_symbol(
+    symbol: str,
+) -> str:
 
-    if not symbol:
-        raise IDXClientError(
-            "Kode saham tidak boleh kosong."
-        )
+    value = (
+        symbol
+        .strip()
+        .upper()
+        .removesuffix(".JK")
+    )
 
-    if not symbol.isalnum():
+
+    if not SYMBOL_RE.fullmatch(value):
+
         raise IDXClientError(
             "Kode saham tidak valid."
         )
+
+
+    return value
+
+
+async def version():
+
+    return await _run_idx(
+        "version",
+    )
+
+
+async def quote(
+    symbol: str,
+):
+
+    symbol = clean_symbol(
+        symbol
+    )
 
     return await _run_idx(
         "stocks",
         "quote",
         symbol,
+    )
+
+
+async def history(
+    symbol: str,
+    period: str = "1mo",
+    interval: str = "1d",
+    limit: int = 30,
+):
+
+    symbol = clean_symbol(
+        symbol
+    )
+
+
+    allowed_periods = {
+        "1d",
+        "5d",
+        "1mo",
+        "3mo",
+        "6mo",
+        "1y",
+        "2y",
+        "5y",
+        "10y",
+        "ytd",
+        "max",
+    }
+
+
+    allowed_intervals = {
+        "5m",
+        "15m",
+        "30m",
+        "1h",
+        "1d",
+        "1wk",
+        "1mo",
+    }
+
+
+    if (
+        period not in allowed_periods
+        or interval not in allowed_intervals
+    ):
+
+        raise IDXClientError(
+            "Period atau interval tidak didukung."
+        )
+
+
+    limit = max(
+        1,
+        min(limit, 500),
+    )
+
+
+    return await _run_idx(
+        "stocks",
+        "history",
+        symbol,
+        "--period",
+        period,
+        "--interval",
+        interval,
+        "--limit",
+        str(limit),
+    )
+
+
+async def technical(
+    symbol: str,
+    period: str = "1y",
+):
+
+    symbol = clean_symbol(
+        symbol
+    )
+
+    return await _run_idx(
+        "stocks",
+        "technical",
+        symbol,
+        "--period",
+        period,
+    )
+
+
+async def market_overview(
+    top: int = 10,
+):
+
+    top = max(
+        1,
+        min(top, 50),
+    )
+
+
+    return await _run_idx(
+        "market",
+        "overview",
+        "--top",
+        str(top),
     )

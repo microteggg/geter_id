@@ -1,33 +1,10 @@
-# Environment
 .env
 .env.*
 !.env.example
 
-# Python
 __pycache__/
 *.py[cod]
-*.pyo
-*.pyd
+
 .venv/
-venv/
-env/
 
-# Test / cache
-.pytest_cache/
-.coverage
-htmlcov/
-
-# IDE
-.vscode/
-.idea/
-
-# OS
-.DS_Store
-Thumbs.db
-
-# Logs
-*.log
-
-# Node (untuk tahap selanjutnya)
 node_modules/
-dist/

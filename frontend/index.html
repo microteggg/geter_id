@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <meta
+        name="description"
+        content="Dashboard analisis saham Indonesia"
+    >
+
+    <title>GETER IDX</title>
+
+    <link
+        rel="stylesheet"
+        href="./style.css"
+    >
+</head>
+
+<body>
+
+<header class="topbar">
+    <div>
+        <h1>GETER IDX</h1>
+        <p>Indonesia Stock Intelligence</p>
+    </div>
+
+    <div
+        id="apiStatus"
+        class="status checking"
+    >
+        Checking API
+    </div>
+</header>
+
+
+<main>
+
+    <section class="hero">
+
+        <div>
+            <p class="eyebrow">
+                INDONESIA EQUITY DASHBOARD
+            </p>
+
+            <h2>
+                Analisis pasar saham Indonesia
+                dalam satu dashboard.
+            </h2>
+
+            <p class="subtitle">
+                Market, technical, foreign flow,
+                broker summary dan bandarmology.
+            </p>
+        </div>
+
+    </section>
+
+
+    <section class="market-grid">
+
+        <div class="metric">
+            <span>IHSG</span>
+
+            <strong>--</strong>
+
+            <small>
+                Market data segera tersedia
+            </small>
+        </div>
+
+
+        <div class="metric">
+            <span>ADVANCERS</span>
+
+            <strong>--</strong>
+
+            <small>
+                Menunggu market engine
+            </small>
+        </div>
+
+
+        <div class="metric">
+            <span>DECLINERS</span>
+
+            <strong>--</strong>
+
+            <small>
+                Menunggu market engine
+            </small>
+        </div>
+
+
+        <div class="metric">
+            <span>FOREIGN NET</span>
+
+            <strong>--</strong>
+
+            <small>
+                Akan ditambahkan
+            </small>
+        </div>
+
+    </section>
+
+
+    <section class="panel">
+
+        <div class="panel-header">
+
+            <div>
+                <p class="eyebrow">
+                    SYMBOL LOOKUP
+                </p>
+
+                <h3>
+                    Cek Saham IDX
+                </h3>
+            </div>
+
+        </div>
+
+
+        <div class="search-box">
+
+            <input
+                id="symbolInput"
+                type="text"
+                value="BBCA"
+                maxlength="12"
+                autocomplete="off"
+                placeholder="Contoh: BBCA"
+            >
+
+            <button id="searchButton">
+                Analisis
+            </button>
+
+        </div>
+
+
+        <div
+            id="message"
+            class="message"
+        ></div>
+
+
+        <div
+            id="stockResult"
+            class="stock-result hidden"
+        >
+
+            <div class="stock-title">
+
+                <div>
+                    <span>
+                        SYMBOL
+                    </span>
+
+                    <strong id="stockSymbol">
+                        -
+                    </strong>
+                </div>
+
+                <span class="live-label">
+                    IDX
+                </span>
+
+            </div>
+
+
+            <pre id="stockData"></pre>
+
+        </div>
+
+    </section>
+
+
+    <section class="features">
+
+        <article>
+            <span>
+                TECHNICAL
+            </span>
+
+            <h4>
+                Technical Analysis
+            </h4>
+
+            <p>
+                RSI, MACD, moving average,
+                ATR serta support dan resistance.
+            </p>
+        </article>
+
+
+        <article>
+            <span>
+                FLOW
+            </span>
+
+            <h4>
+                Foreign Flow
+            </h4>
+
+            <p>
+                Monitoring foreign net buy
+                dan foreign net sell.
+            </p>
+        </article>
+
+
+        <article>
+            <span>
+                BROKER
+            </span>
+
+            <h4>
+                Bandarmology
+            </h4>
+
+            <p>
+                Broker summary, accumulation
+                dan distribution.
+            </p>
+        </article>
+
+
+        <article>
+            <span>
+                SCANNER
+            </span>
+
+            <h4>
+                Smart Scanner
+            </h4>
+
+            <p>
+                Screening seluruh saham IDX
+                berdasarkan beberapa faktor.
+            </p>
+        </article>
+
+    </section>
+
+</main>
+
+
+<footer>
+    GETER IDX
+    <span>•</span>
+    Indonesia Stock Dashboard
+</footer>
+
+
+<script src="./app.js"></script>
+
+</body>
+</html>

@@ -1,21 +1,29 @@
-from fastapi import FastAPI, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
+from fastapi import (
+    FastAPI,
+    HTTPException,
+    Query,
+)
+
+from fastapi.middleware.cors import (
+    CORSMiddleware,
+)
+
+from fastapi.staticfiles import (
+    StaticFiles,
+)
 
 from .config import (
     APP_NAME,
     APP_VERSION,
     CORS_ORIGINS,
 )
-from .idx_client import (
-    IDXClientError,
-    get_quote,
-)
+
+from . import idx_client
 
 
 app = FastAPI(
     title=APP_NAME,
     version=APP_VERSION,
-    description="Backend API untuk Dashboard Saham Indonesia.",
 )
 
 
@@ -28,37 +36,137 @@ app.add_middleware(
 )
 
 
-@app.get("/")
-async def root():
-    return {
-        "app": APP_NAME,
-        "version": APP_VERSION,
-        "status": "running",
-    }
+def fail(
+    exc: Exception,
+):
+
+    raise HTTPException(
+        status_code=503,
+        detail=str(exc),
+    ) from exc
 
 
-@app.get("/api/health")
+@app.get(
+    "/api/health"
+)
 async def health():
+
+    try:
+
+        await idx_client.version()
+
+        engine = "online"
+
+    except Exception as exc:
+
+        engine = (
+            f"offline: {exc}"
+        )
+
+
     return {
         "status": "ok",
         "service": APP_NAME,
         "version": APP_VERSION,
+        "idx_engine": engine,
     }
 
 
-@app.get("/api/quote/{symbol}")
-async def quote(symbol: str):
+@app.get(
+    "/api/quote/{symbol}"
+)
+async def quote(
+    symbol: str,
+):
+
     try:
-        data = await get_quote(symbol)
 
-        return {
-            "status": "ok",
-            "symbol": symbol.upper(),
-            "data": data,
-        }
+        return await idx_client.quote(
+            symbol
+        )
 
-    except IDXClientError as exc:
-        raise HTTPException(
-            status_code=503,
-            detail=str(exc),
-        ) from exc
+    except idx_client.IDXClientError as exc:
+
+        fail(exc)
+
+
+@app.get(
+    "/api/history/{symbol}"
+)
+async def history(
+    symbol: str,
+    period: str = "1mo",
+    interval: str = "1d",
+    limit: int = Query(
+        30,
+        ge=1,
+        le=500,
+    ),
+):
+
+    try:
+
+        return await idx_client.history(
+            symbol,
+            period,
+            interval,
+            limit,
+        )
+
+    except idx_client.IDXClientError as exc:
+
+        fail(exc)
+
+
+@app.get(
+    "/api/technical/{symbol}"
+)
+async def technical(
+    symbol: str,
+    period: str = "1y",
+):
+
+    try:
+
+        return await idx_client.technical(
+            symbol,
+            period,
+        )
+
+    except idx_client.IDXClientError as exc:
+
+        fail(exc)
+
+
+@app.get(
+    "/api/market"
+)
+async def market(
+    top: int = Query(
+        10,
+        ge=1,
+        le=50,
+    ),
+):
+
+    try:
+
+        return await (
+            idx_client.market_overview(
+                top
+            )
+        )
+
+    except idx_client.IDXClientError as exc:
+
+        fail(exc)
+
+
+app.mount(
+    "/",
+    StaticFiles(
+        directory="frontend",
+        html=True,
+    ),
+    name="frontend",
+)

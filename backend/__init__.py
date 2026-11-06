@@ -1,1 +1,1 @@
-"""Backend package for geter_id."""
+"""Backend package for GETER IDX."""

@@ -1,22 +1,18 @@
 # GETER IDX
 
-Dashboard analisis saham Indonesia yang dikembangkan
-sebagai proyek terpisah dari dashboard Forex dan Crypto.
+Dashboard analisis saham Indonesia.
 
 ## Status
 
-Tahap 1 - Foundation
+Tahap 2 - IDX Engine Integration
 
 ## Arsitektur
 
 ```text
 Data Provider
-     |
-     v
-IDX Engine
-     |
-     v
-FastAPI Backend
-     |
-     v
-GETER IDX Frontend
+      ↓
+fzn0x/idx
+      ↓
+FastAPI
+      ↓
+GETER IDX

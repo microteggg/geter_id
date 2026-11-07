@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: geter-id
+    runtime: docker
+    branch: main
+    plan: free
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /api/health
+    envVars:
+      - key: ENABLE_OWNERSHIP
+        value: "false"
+      - key: COMMAND_TIMEOUT
+        value: "120"

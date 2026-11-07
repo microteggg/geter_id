@@ -1,0 +1,15 @@
+services:
+  geter-id:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      APP_USER: ${APP_USER:-}
+      APP_PASSWORD: ${APP_PASSWORD:-}
+      ENABLE_OWNERSHIP: ${ENABLE_OWNERSHIP:-false}
+      COMMAND_TIMEOUT: "120"
+    volumes:
+      - idx-home:/home/app
+    restart: unless-stopped
+volumes:
+  idx-home:

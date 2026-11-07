@@ -1,0 +1,20 @@
+/* Grafik kuantitatif OHLCV tanpa library/CDN. */
+class CandleChart {
+ constructor(canvas){this.c=canvas;this.ctx=canvas.getContext('2d');this.data=[];this.count=70;this.end=0;this.cursor=null;this.points=new Map();this.drag=null;new ResizeObserver(()=>this.draw()).observe(canvas);
+ canvas.addEventListener('wheel',e=>{e.preventDefault();this.zoom(e.deltaY>0?1.15:.87)},{passive:false});
+ canvas.addEventListener('pointerdown',e=>{canvas.setPointerCapture(e.pointerId);this.points.set(e.pointerId,{x:e.offsetX,y:e.offsetY});this.drag={x:e.offsetX,end:this.end};this.pinch=this.distance()});
+ canvas.addEventListener('pointermove',e=>{this.cursor={x:e.offsetX,y:e.offsetY};if(this.points.has(e.pointerId)){this.points.set(e.pointerId,{x:e.offsetX,y:e.offsetY});if(this.points.size===2){const d=this.distance();if(this.pinch&&d){this.zoom(this.pinch/d);this.pinch=d}}else if(this.drag){const width=Math.max(1,this.c.clientWidth-85);this.end=Math.round(this.drag.end-(e.offsetX-this.drag.x)/width*this.count);this.clamp()}}this.draw()});
+ const up=e=>{this.points.delete(e.pointerId);this.drag=null;this.pinch=null};canvas.addEventListener('pointerup',up);canvas.addEventListener('pointercancel',up);canvas.addEventListener('pointerleave',()=>{if(!this.points.size)this.cursor=null;this.draw()});
+ }
+ distance(){const a=[...this.points.values()];return a.length===2?Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y):null}
+ set(data){this.data=data;this.reset()}
+ reset(){this.count=Math.min(70,this.data.length);this.end=this.data.length;this.cursor=null;this.draw()}
+ clamp(){this.count=Math.max(Math.min(8,this.data.length),Math.min(this.data.length,this.count));this.end=Math.max(this.count,Math.min(this.data.length,this.end))}
+ zoom(f){if(!this.data.length)return;this.count=Math.round(this.count*f);this.clamp();this.draw()}
+ draw(){const w=this.c.clientWidth,h=this.c.clientHeight;if(w<10||h<10)return;const ratio=window.devicePixelRatio||1;this.c.width=w*ratio;this.c.height=h*ratio;const g=this.ctx;g.scale(ratio,ratio);g.fillStyle='#081521';g.fillRect(0,0,w,h);g.font='10px system-ui';if(!this.data.length){g.fillStyle='#8fa6b5';g.fillText('Belum ada data OHLCV.',15,30);return}this.clamp();const rows=this.data.slice(Math.max(0,this.end-this.count),this.end);const l=12,r=w-76,t=38,b=h-90,vb=h-28;let lo=Math.min(...rows.map(x=>x.low)),hi=Math.max(...rows.map(x=>x.high));const pad=(hi-lo||Math.max(1,hi*.01))*.08;lo-=pad;hi+=pad;const y=p=>b-(p-lo)/(hi-lo)*(b-t),step=(r-l)/rows.length,maxV=Math.max(1,...rows.map(x=>x.volume||0));
+ for(let i=0;i<5;i++){const py=t+(b-t)*i/4;g.strokeStyle='#1b303f';g.beginPath();g.moveTo(l,py);g.lineTo(r,py);g.stroke();g.fillStyle='#8fa6b5';g.fillText(new Intl.NumberFormat('id-ID',{maximumFractionDigits:2}).format(hi-(hi-lo)*i/4),r+6,py+3)}
+ rows.forEach((d,i)=>{const x=l+(i+.5)*step,color=d.close>=d.open?'#72efbd':'#ff8b9d';g.strokeStyle=color;g.fillStyle=color;g.beginPath();g.moveTo(x,y(d.high));g.lineTo(x,y(d.low));g.stroke();g.fillRect(x-step*.31,Math.min(y(d.open),y(d.close)),Math.max(1,step*.62),Math.max(1,Math.abs(y(d.open)-y(d.close))));if(d.volume!==null){g.globalAlpha=.4;g.fillRect(x-step*.31,vb-(d.volume/maxV)*48,Math.max(1,step*.62),(d.volume/maxV)*48);g.globalAlpha=1}if(i%Math.max(1,Math.floor(rows.length/4))===0){g.fillStyle='#8fa6b5';g.fillText(d.date.slice(0,10),Math.min(x,r-60),h-8)}});
+ let selected=rows[rows.length-1];if(this.cursor&&this.cursor.x>=l&&this.cursor.x<=r){const i=Math.min(rows.length-1,Math.max(0,Math.floor((this.cursor.x-l)/step)));selected=rows[i];const x=l+(i+.5)*step;g.setLineDash([3,3]);g.strokeStyle='#7894a4';g.beginPath();g.moveTo(x,t);g.lineTo(x,vb);g.moveTo(l,this.cursor.y);g.lineTo(r,this.cursor.y);g.stroke();g.setLineDash([])}g.fillStyle='#b8d0de';g.fillText(`${selected.date.slice(0,10)}  O ${selected.open}  H ${selected.high}  L ${selected.low}  C ${selected.close}`,12,18);g.fillText(`Volume: ${selected.volume===null?'tidak tersedia':new Intl.NumberFormat('id-ID',{notation:'compact'}).format(selected.volume)}`,12,32);
+ }
+}
+window.CandleChart=CandleChart;
